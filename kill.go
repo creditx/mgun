@@ -205,9 +205,9 @@ func (this *Killer) chargeCartidges(shots chan<- *Shot, client *http.Client, car
 						writer.Close()
 						request.Header.Set("Content-Type", writer.FormDataContentType())
 					} else if request.Header.Get("Content-Type") == "application/json" {
-						param := make(map[string]string, len(cartridge.chargeFeatures))
+						param := make(map[string]interface{}, len(cartridge.chargeFeatures))
 						for _, feature := range cartridge.chargeFeatures {
-							param[feature.name] = feature.String(this)
+							param[feature.name] = feature.description
 						}
 						p_json, err := json.Marshal(param)
 						if err != nil {

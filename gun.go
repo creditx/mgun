@@ -351,7 +351,13 @@ func (this *Features) UnmarshalYAML(unmarshal func(yaml interface{}) error) erro
 func (this *Features) fill(rawFeatures map[interface{}]interface{}) {
 	for rawKey, rawValue := range rawFeatures {
 		key := rawKey.(string)
-		value := fmt.Sprintf("%v", rawValue)
+		var value interface{}
+		switch rawValue.(type) {
+		case map[interface{}]interface{}:
+			value = cleanUpInterfaceMap(rawValue.(map[interface{}]interface{}))
+		default:
+			value = rawValue
+		}
 		*this = append(*this, NewNamedDescribedFeature(key, value))
 	}
 }
