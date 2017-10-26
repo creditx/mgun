@@ -2,11 +2,16 @@ package main
 
 import (
 	"flag"
-	"io/ioutil"
 	"fmt"
-	"github.com/byorty/mgun/lib"
+	"io/ioutil"
+	"log"
+
 	yaml "gopkg.in/yaml.v2"
 )
+
+func init() {
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+}
 
 func main() {
 	var file string
@@ -17,10 +22,10 @@ func main() {
 		bytes, err := ioutil.ReadFile(file)
 		if err == nil {
 
-			kill := lib.GetKill()
-			victim := lib.NewVictim()
-			gun := lib.GetGun()
-			reporter := lib.GetReporter()
+			kill := GetKill()
+			victim := NewVictim()
+			gun := GetGun()
+			reporter := GetReporter()
 
 			err := yaml.Unmarshal(bytes, kill)
 			if err == nil {

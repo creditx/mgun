@@ -1,21 +1,23 @@
-package lib
+package main
 
 import (
-	"time"
+	"bytes"
 	"errors"
 	"fmt"
-	"runtime"
+	"io/ioutil"
+	"log"
+	"mime/multipart"
+	"net"
 	"net/http"
 	"net/http/cookiejar"
-	"net"
-	"strings"
-	"net/url"
-	"mime/multipart"
-	"bytes"
 	"net/http/httputil"
+	"net/url"
+	"runtime"
+	"strings"
 	"sync"
+	"time"
+
 	"github.com/cheggaaa/pb"
-	"io/ioutil"
 	"golang.org/x/net/publicsuffix"
 )
 
@@ -151,7 +153,7 @@ func (this *Killer) charge(shots chan *Shot) {
 	this.chargeCartidges(shots, client, this.gun.Cartridges)
 }
 
-func (this *Killer) chargeCartidges(shots chan <- *Shot, client *http.Client, cartridges Cartridges) {
+func (this *Killer) chargeCartidges(shots chan<- *Shot, client *http.Client, cartridges Cartridges) {
 	for _, cartridge := range cartridges {
 		if cartridge.getMethod() == RANDOM_METHOD || cartridge.getMethod() == SYNC_METHOD {
 			this.chargeCartidges(shots, client, cartridge.getChildren())
@@ -169,10 +171,10 @@ func (this *Killer) chargeCartidges(shots chan <- *Shot, client *http.Client, ca
 			shot.client = client
 			shot.transport = &http.Transport{
 				Dial: func(network, addr string) (conn net.Conn, err error) {
-					return net.DialTimeout(network, addr, time.Second * timeout)
+					return net.DialTimeout(network, addr, time.Second*timeout)
 				},
 				ResponseHeaderTimeout: time.Second * timeout,
-				DisableKeepAlives: true,
+				DisableKeepAlives:     true,
 			}
 
 			reqUrl := new(url.URL)
@@ -196,6 +198,9 @@ func (this *Killer) chargeCartidges(shots chan <- *Shot, client *http.Client, ca
 				if isPostRequest {
 					if request.Header.Get("Content-Type") == "multipart/form-data" {
 						writer := multipart.NewWriter(&body)
+						for _, v := range cartridge.chargeFeatures {
+							log.Println(v)
+						}
 						for _, feature := range cartridge.chargeFeatures {
 							writer.WriteField(feature.name, feature.String(this))
 						}
@@ -234,7 +239,7 @@ func (this *Killer) setFeatures(request *http.Request, features Features) {
 	}
 }
 
-func (this *Killer) fire(hits chan <- *Hit, shots <- chan *Shot, group *sync.WaitGroup, bar *pb.ProgressBar) {
+func (this *Killer) fire(hits chan<- *Hit, shots <-chan *Shot, group *sync.WaitGroup, bar *pb.ProgressBar) {
 	for shot := range shots {
 		hit := new(Hit)
 		hit.shot = shot
@@ -268,7 +273,7 @@ type Hit struct {
 }
 
 const (
-	HTTP_SCHEME = "http"
+	HTTP_SCHEME  = "http"
 	HTTPS_SCHEME = "https"
 )
 
